@@ -4,11 +4,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 @TeleOp(group = "testing")
 public class FeedforwardArm {
 
     public DcMotorEx motor; /// must have motor-encoder (wire) attached
+
+    private VoltageSensor batteryVoltageSensor;
 
     public FeedforwardArm(HardwareMap hardwareMap, String deviceName, double kf, int tolerance, double TICKS_PER_REV, double startPositionInTicks) {
 
@@ -16,6 +19,8 @@ public class FeedforwardArm {
 
         this.TICKS_PER_REV = TICKS_PER_REV;
         startPosition = startPositionInTicks;
+
+        batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         this.motor = hardwareMap.get(DcMotorEx.class, deviceName);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -25,6 +30,8 @@ public class FeedforwardArm {
     private double kf;
     private final double TICKS_PER_REV;
     private double startPosition;
+
+    private boolean DISABLE = false; //feedforward power being used by default
 
     public double getAngle(double ticks) {
 
@@ -60,10 +67,10 @@ public class FeedforwardArm {
         double adjustedAngle = 90 - getAngle(motor.getCurrentPosition());
         double k = kf * Math.cos(adjustedAngle);
 
-        motor.setPower(k);
+        if (!DISABLE) motor.setPower(k);
     }
 
-    public void stopAndResetEncoder() {
+    public void stopAndResetEncoder() { //always call this method instead of calling .motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); directly
 
         startPosition = motor.getCurrentPosition();
 
@@ -71,7 +78,27 @@ public class FeedforwardArm {
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void kfUpdatingForTuning(double kf) {
+    public void setPower(double motorPower) {
+        motor.setPower(motorPower);
+    }
+
+    public void setPosition(int targetPosition, double motorPower) {
+
+        enableCustomPower();
+        motor.setTargetPosition(targetPosition);
+        motor.setPower(motorPower);
+        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void enableCustomPower() {
+        DISABLE = true;
+    }
+
+    public void disableCustomPower() { //switches back to feedforward
+        DISABLE = false;
+    }
+
+    public void kfUpdatingForTuning(double kf) { //used in the tuner
         this.kf = kf;
     }
 

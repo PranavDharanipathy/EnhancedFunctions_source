@@ -12,7 +12,7 @@ public class FeedforwardArmTesting extends OpMode {
 
     @Override
     public void init() {
-        arm = new FeedforwardArm(hardwareMap, "arm", 1, 1, 547.7, 0);
+        arm = new FeedforwardArm(hardwareMap, "arm", 1, 1, 537.7, 0);
     }
 
     @Override
