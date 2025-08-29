@@ -6,23 +6,25 @@ import android.content.SharedPreferences.Editor;
 
 public class DataSaver {
 
+    /// The XML files are stored on the Driver Hub.
+
     private SharedPreferences sharedPreferences;
     private Context context;
 
-    public DataSaver(String FILE_NAME, Context context) {
+    public DataSaver(String FILE_NAME, Context context) { //XML file is created with name of FILE_NAME
 
         this.context = context;
         sharedPreferences = this.context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
     }
 
-    public void saveData(String key, float value) {
+    public void saveData(String key, float value) { //save to XML file
 
         Editor editor = sharedPreferences.edit();
         editor.putFloat(key, value);
         editor.apply();
     }
 
-    public float loadData(String key, float defaultValue) {
+    public float loadData(String key, float defaultValue) { //load from XML file
         return sharedPreferences.getFloat(key, defaultValue);
     }
 

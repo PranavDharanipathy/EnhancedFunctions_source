@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.EnhancedFunctions.OptimizedGamepad;
 
 @TeleOp (group = "testing")
-public class OptimizedGamepadTesting extends OpMode {
+public class OptimizedGamepadTest extends OpMode {
 
     private OptimizedGamepad opt_gamepad1 = new OptimizedGamepad(gamepad1);
 

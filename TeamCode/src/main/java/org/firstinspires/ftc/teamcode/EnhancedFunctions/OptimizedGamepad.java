@@ -63,6 +63,7 @@ public class OptimizedGamepad {
         public boolean atRest() { return gamepad.atRest(); }
 
         public boolean hasJustBeenPressed(GAMEPAD_BOOLS bools) {
+            // wasn't pressed in the previous instance but is now
 
             if ((bools == A || bools == SQUARE) && gamepad.a && !gamepad.aWasPressed()) return true;
             if ((bools == B || bools == CIRCLE) && gamepad.b && !gamepad.bWasPressed()) return true;
