@@ -75,9 +75,8 @@ public class FeedforwardArmTuner extends LinearOpMode {
             arm.kfUpdatingForTuning(kf);
             arm.update();
 
-            telemetry.addLine("Get the arm to the vertical position.");
+            telemetry.addLine("Get the arm to hold at the horizontal position (parallel to the ground).");
             telemetry.addLine(" ");
-            telemetry.addLine("When the arm stops moving, then you can increase kf");
             telemetry.addLine("Tune as high as you can using a.");
             telemetry.addLine("Then switch to tuning using b.");
             telemetry.addLine("a: 0.01");
@@ -90,7 +89,8 @@ public class FeedforwardArmTuner extends LinearOpMode {
             telemetry.addLine("You must run this more that one at a different voltage.");
             telemetry.addData("Voltage", batteryVoltageSensor.getVoltage());
             telemetry.addLine(" ");
-            telemetry.addLine("Add your tuned kf value to the KF_DATA list");
+            telemetry.addLine("Add your tuned kf value to the KF_DATA list.");
+            telemetry.addLine("Add your voltage value to the VOLTAGE_DATA list.");
             telemetry.update();
         }
 

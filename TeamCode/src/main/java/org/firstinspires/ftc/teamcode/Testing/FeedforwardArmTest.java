@@ -6,21 +6,36 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.EnhancedFunctions.FeedforwardArm;
 
 @TeleOp(group = "testing")
-public class FeedforwardArmTesting extends OpMode {
+public class FeedforwardArmTest extends OpMode {
 
     private FeedforwardArm arm;
 
     private static final double[] VOLTAGE_DATA = {13, 13, 13};
     private static final double[] KF_DATA = {13, 13, 13};
 
+    public static int TARGET_POSITION1 = 200;
+    public static int TARGET_POSITION2 = -200;
+    public static int TARGET_POSITION1_THRESHOLD = 10;
+    public static int TARGET_POSITION2_THRESHOLD = 10;
+
     @Override
     public void init() {
         arm = new FeedforwardArm(hardwareMap, "arm", 1, 1, 537.7, 0);
         arm.changeVoltageData(VOLTAGE_DATA, KF_DATA);
+        arm.addThreshold(TARGET_POSITION1, TARGET_POSITION1_THRESHOLD);
+        arm.addThreshold(TARGET_POSITION2, TARGET_POSITION2_THRESHOLD);
     }
 
     @Override
     public void loop() {
+
+        if (gamepad1.a) {
+            arm.setPosition(TARGET_POSITION1,1);
+        }
+        else if (gamepad1.b) {
+            arm.setPosition(TARGET_POSITION2,1);
+        }
+
         arm.update();
     }
 }

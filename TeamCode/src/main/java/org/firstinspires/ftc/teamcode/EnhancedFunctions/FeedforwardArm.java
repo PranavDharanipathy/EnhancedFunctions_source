@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode.EnhancedFunctions;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-@TeleOp(group = "testing")
+import java.util.HashMap;
+
 public class FeedforwardArm {
 
     /// MUST HAVE MOTOR-ENCODER (WIRE) ATTACHED!
@@ -27,6 +27,8 @@ public class FeedforwardArm {
         this.motor = hardwareMap.get(DcMotorEx.class, deviceName);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motor.setTargetPositionTolerance(tolerance);
+
+        motor.setTargetPosition((int) startPosition);
     }
 
     private double kf;
@@ -36,6 +38,16 @@ public class FeedforwardArm {
     //defaults set
     private double[] VOLTAGE_DATA = {13, 13};
     private double[] KF_DATA = {13, 13};
+
+    private HashMap<Integer, Integer> thresholds = new HashMap<>();
+
+    /**
+     * Thresholds are stored for each target position
+     * @param targetPosition
+     **/
+    public void addThreshold(int targetPosition, int threshold) {
+        thresholds.putIfAbsent(targetPosition, threshold);
+    }
 
     /**
      * @param VOLTAGE_DATA - voltage data when kf was collected
@@ -68,8 +80,8 @@ public class FeedforwardArm {
 
     /** HOW TO GIVE ANGLE VS HOW CODE PROCESSES THEM:
      HOW TO GIVE       HOW THE CODE PROCESSES
-     *     0                  0
-     * -90 ∩ 90      =>   180 ∩ 90     [IN DEGREES]
+     *     0                 90
+     * -90 ∩ 90      =>   180 ∩ 0     [IN DEGREES]
      *
      * '∩' represents the arc that the arm follows in its movement.
      **/
@@ -89,41 +101,38 @@ public class FeedforwardArm {
         double adjustedAngle = 90 - getAngle(motor.getCurrentPosition());
         double k;
 
-        if (TUNING) {
-            k = kf * Math.cos(adjustedAngle);
+        if (Math.abs(motor.getTargetPosition() - motor.getCurrentPosition()) > thresholds.getOrDefault(motor.getTargetPosition(), 10)) {
+            motor.setPower(power);
         }
         else {
-            k = (getVoltageQuadraticOutput(batteryVoltageSensor.getVoltage()) / batteryVoltageSensor.getVoltage()) * kf * Math.cos(adjustedAngle);
-        }
+            if (TUNING) k = kf * Math.cos(adjustedAngle);
+            else k = (getVoltageQuadraticOutput(batteryVoltageSensor.getVoltage()) / batteryVoltageSensor.getVoltage()) * kf * Math.cos(adjustedAngle);
 
-        if (!DISABLE) motor.setPower(k);
+            if (!DISABLE) motor.setPower(k);
+        }
     }
 
     /// always call this method instead of calling .motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); directly
     public void stopAndResetEncoder() {
 
-        startPosition = motor.getCurrentPosition();
+        startPosition += motor.getCurrentPosition();
 
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
+    private double power;
+
     public void setPower(double motorPower) {
-        motor.setPower(motorPower);
+
+        power = motorPower;
+        motor.setPower(power);
     }
 
-    public void setPositionWithCustomPower(int targetPosition, double motorPower) {
+    public void setPosition(int targetPosition, double motorPower) {
 
-        enableCustomPower();
         motor.setTargetPosition(targetPosition);
-        motor.setPower(motorPower);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-
-    public void setTargetPosition(int targetPosition) {
-
-        enableCustomPower();
-        motor.setTargetPosition(targetPosition);
+        setPower(motorPower);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
@@ -139,10 +148,10 @@ public class FeedforwardArm {
         this.kf = kf;
     }
 
-    /** on base graph:
+    /** On base graph:
      * x represents voltage
      * y represents kf
-     * on solution:
+     * On solution:
      * x represents voltage
      * y represents power multiplier
     **/
