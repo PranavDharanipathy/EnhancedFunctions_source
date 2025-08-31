@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
-public class DataSaver {
+public final class DataSaver {
 
     /// The XML files are stored on the Driver Hub.
 

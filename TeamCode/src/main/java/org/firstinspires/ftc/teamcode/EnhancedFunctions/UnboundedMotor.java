@@ -70,6 +70,8 @@ public class UnboundedMotor {
 
     public static class ScheduleAtFixedRate extends ScheduleType {
 
+        /// NOT RECOMMENDED!
+        /// @apiNote Discouraged
         public ScheduleAtFixedRate(Integer rate) {
             isIllegalArgumentGivenToScheduler(rate);
             SCHEDULE_TYPE = "FIXED_RATE";
@@ -95,6 +97,7 @@ public class UnboundedMotor {
         }
     }
 
+    /// @exception IllegalArgumentException scheduleRateArgument cannot be less than zero!
     public static void isIllegalArgumentGivenToScheduler(long scheduleRateArgument) {
         if (scheduleRateArgument < 1) throw new IllegalArgumentException("scheduleRateArgument cannot be less than zero!");
     }
@@ -113,6 +116,12 @@ public class UnboundedMotor {
         asyncStarter = Executors.newSingleThreadExecutor();
     }
 
+    /** @see UnboundedMotor#UnboundedMotor(HardwareMap, String, double, int)
+     * (double) MAX_MILLIAMPS and (int) tolerance are given defaults when the "new default" constructor is called
+     * MAX_MILLIAMPS default: 5100
+     * tolerance default: 2
+    **/
+    //new default constructor
     public UnboundedMotor(HardwareMap hardwareMap, String deviceName) {
         this(hardwareMap, deviceName, 5100, 2);
     }
@@ -128,6 +137,7 @@ public class UnboundedMotor {
         return sum;
     }
 
+    /// runs background actions concurrently
     public void start(ScheduleType rate/** all actions done in constructor renders calling methods redundant **/ ) {
         if (!isStarted) {
             if (SCHEDULE_TYPE.equals("FIXED_DELAY")) executor.scheduleWithFixedDelay(this::update,0, SCHEDULE_RATE, TimeUnit.MILLISECONDS);
@@ -167,6 +177,7 @@ public class UnboundedMotor {
         else throw new MotorAlreadyStartedException("Motor has already been started and cannot be started again!");
     }
 
+    ///method containing code that must be continuously run
     private void update() {
 
 //        if (direction == Direction.FORWARD) motor.setDirection(DcMotor.Direction.FORWARD);

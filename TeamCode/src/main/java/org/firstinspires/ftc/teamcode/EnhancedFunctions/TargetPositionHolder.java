@@ -30,15 +30,13 @@ public class TargetPositionHolder {
     public static double MIN_POWER_LMARGIN = 35;
 
     private volatile double TICKS_PER_REV = 537.7; //THIS is your default motors encoder resolution (motor encoder resolution can be changed for each motor)
-    public volatile double gearRatio = 1; /** GEAR_RATIO output (motor) speed / input (motor) speed **/
-    public volatile double holdPower = 0; /** power set once motor has reached its TargetPosition **/
+    public volatile double gearRatio = 1; // GEAR_RATIO input (motor) speed / output (motor) speed
+    public volatile double holdPower = 0; // power set once motor has reached its TargetPosition
     public volatile double marginOfError = 5 ;
     public volatile double powerMultiplier = 1;
-    public volatile double tuningPowerMultiplier = 1; /** made on top of power multiplier adjustments **/
+    public volatile double tuningPowerMultiplier = 1; // made on top of power multiplier adjustments
 
-    private volatile Map<DcMotor, Future<?>> motorTasks = new HashMap<>(); /** HashMap to create instances of classes **/ //holds all Futures of the ExecutorService
-    /** Future is used to handle specific parts of the ExecutorService instead of only handling all or none **/
-
+    private volatile Map<DcMotor, Future<?>> motorTasks = new HashMap<>(); //holds all motor tasks
 
     public void holdDcMotor(@NonNull DcMotor motor, double holdPosition, @NonNull VoltageSensor batteryVoltageSensor, Object... varargs) {
 
@@ -54,7 +52,7 @@ public class TargetPositionHolder {
         //motor powers et leveraging ternary operators
 
         double MAX_POWER = Math.min(1 / gearRatio, 1);
-        /** ternary operator **/
+        // ternary operator
         double LOWER_MAX_POWER = ((MAX_POWER / 1.3) * powerMultiplier) > 1 ? ((1 * powerMultiplier <= 1) ? 1 : (1 * powerMultiplier)) : ((MAX_POWER / 1.3) * powerMultiplier);
         double HALF_POWER = ((MAX_POWER / 5.5) * powerMultiplier) > 1 ? ((1 * powerMultiplier <= 1) ? 1 : (1 * powerMultiplier)) : ((MAX_POWER / 2) * powerMultiplier);
         double MOD_POW = ((MAX_POWER / 7.5) * powerMultiplier) > 1 ? ((1 * powerMultiplier <= 1) ? 1 : (1 * powerMultiplier)) : ((MAX_POWER / 3.5) * powerMultiplier);
@@ -62,7 +60,7 @@ public class TargetPositionHolder {
         double MIN_POW = ((MAX_POWER / 10) * powerMultiplier) > 1 ? ((1 * powerMultiplier <= 1) ? 1 : (1 * powerMultiplier)) : ((MAX_POWER / 9.5) * powerMultiplier);
         double LOW_BATTERY_VOLTAGE_LOW_AND_MIN_POW = ((MAX_POWER / 5) * powerMultiplier) > 1 ? 1 : ((MAX_POWER / 7.5) * powerMultiplier);
 
-        /** tuningPowerMultiplier is applied after powerMultiplier is applied **/
+        // tuningPowerMultiplier is applied after powerMultiplier is applied
         double MOD_POWER = (MOD_POW * tuningPowerMultiplier) > 1 ? ((1 * powerMultiplier <= 1) ? 1 : (1 * powerMultiplier)) : (MOD_POW * tuningPowerMultiplier);
         double LOW_POWER = (LOW_POW * tuningPowerMultiplier) > 1 ? ((1 * powerMultiplier <= 1) ? 1 : (1 * powerMultiplier)) : (LOW_POW * tuningPowerMultiplier);
         double MIN_POWER = (MIN_POW * tuningPowerMultiplier) > 1 ? ((1 * powerMultiplier <= 1) ? 1 : (1 * powerMultiplier)) : (MIN_POW * tuningPowerMultiplier);
@@ -114,8 +112,7 @@ public class TargetPositionHolder {
             if (varargs[i] instanceof String && varargs[i + 1] instanceof Number) {
                 String stringKey = (String) varargs[i];
                 double value = ((Number) varargs[i + 1]).doubleValue();
-                /** Number is data type of Object number, here it is Double,
-                 * Double is a wrapper of the primitive: double, and needs to be unboxed from a  Double to a double avoids ClassCastException **/
+
                 switch (stringKey) {
                     case "GEAR_RATIO":
                         gearRatio = value;
@@ -143,6 +140,7 @@ public class TargetPositionHolder {
         return new double[] {gearRatio, ticksPerRev, holdPower, marginOfError, powerMultiplier, tuningPowerMultiplier};
     }
 
+    /// ends the task of a motor
     public void clearFutureOfDcMotor(DcMotor motor) {
         if (motorTasks.containsKey(motor)) motorTasks.remove(motor);
     }
@@ -162,17 +160,16 @@ public class TargetPositionHolder {
         motor.setPower(0.0);
     }
 
-    //used by 'holdDcMotor()' sets appropriate power given data (tuned)
+    /// used by 'holdDcMotor()' sets appropriate power given data (tuned)
     public double setAppropriatePower(double MAX_POWER,
                                       double LOWER_MAX_POWER,
                                       double HALF_POWER,
                                       double MOD_POWER,
-            /* gets motor powers */      double LOW_POWER,
+                                      double LOW_POWER,
                                       double MIN_POWER,
                                       double LOW_BATTERY_VOLTAGE_LOW_AND_MIN_POWER,
                                       VoltageSensor batteryVoltageSensor,
-                                      DcMotor motor)
-        /* start of loop >>> */ {
+                                      DcMotor motor) {
         double powerAmount;
         double positionDifference = Math.abs(motor.getTargetPosition() - motor.getCurrentPosition());
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();

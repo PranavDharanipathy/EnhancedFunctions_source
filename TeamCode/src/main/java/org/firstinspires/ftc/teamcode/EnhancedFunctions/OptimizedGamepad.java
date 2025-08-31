@@ -1,13 +1,19 @@
 package org.firstinspires.ftc.teamcode.EnhancedFunctions;
 
+// needs to be accessed within a nested/inner class
 import static org.firstinspires.ftc.teamcode.EnhancedFunctions.OptimizedGamepad.GAMEPAD_BOOLS.*;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.internal.ui.GamepadUser;
 
-
-public class OptimizedGamepad {
+/**
+ * Not a child class of Gamepad
+ * Has hasJustBeenPressed methods
+ * Some methods are left behind
+ * @see Gamepad
+ **/
+public final class OptimizedGamepad {
 
     private Gamepad gamepad;
 

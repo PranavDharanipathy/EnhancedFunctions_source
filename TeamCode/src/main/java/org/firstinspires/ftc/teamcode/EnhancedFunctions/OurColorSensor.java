@@ -24,11 +24,26 @@ public class OurColorSensor {
     private DetectedColor detectedColor = DetectedColor.OTHER;
     private volatile String color = "";
 
+    /// initializes the color sensor
     public void initialize(HardwareMap hardwareMap) {
-        // Initialize the color sensor
-        initColorSensor(hardwareMap);
+
+        int relativeLayoutId = hardwareMap.appContext.getResources()
+                .getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
+        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
+
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+
+        if (colorSensor instanceof SwitchableLight) {
+            ((SwitchableLight) colorSensor).enableLight(true);
+        }
+
+        colorSensor.setGain(2); // Set the gain
     }
 
+    /** @return hsv values
+     * @see NormalizedColorSensor
+     * @see NormalizedRGBA
+     * **/
     public float getHue() {
         NormalizedRGBA colors = colorSensor.getNormalizedColors();
         Color.colorToHSV(colors.toColor(), hsvValues);
@@ -58,26 +73,11 @@ public class OurColorSensor {
         return detectedColor;
     }
 
-    // Initialize the color sensor
-    private void initColorSensor(HardwareMap hardwareMap) {
-        int relativeLayoutId = hardwareMap.appContext.getResources()
-                .getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
-        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
-
-        if (colorSensor instanceof SwitchableLight) {
-            ((SwitchableLight) colorSensor).enableLight(true);
-        }
-
-        colorSensor.setGain(2); // Set the gain
-    }
-
     public DetectedColor detectColor() {
         NormalizedRGBA colors = colorSensor.getNormalizedColors();
         Color.colorToHSV(colors.toColor(), hsvValues);
 
-        /// Determine detected color based on hue
+        // Determine detected color based on hue
         if (hsvValues[0] >= 190 && hsvValues[0] <= 260) {
             color = "BLUE"; // Set color first
             return DetectedColor.BLUE; // Then return
