@@ -10,6 +10,7 @@ public class FeedforwardArmTest extends OpMode {
 
     private FeedforwardArm arm;
 
+    //arbitrary
     private static final double[] VOLTAGE_DATA = {13, 13, 13};
     private static final double[] KF_DATA = {13, 13, 13};
 
@@ -20,8 +21,14 @@ public class FeedforwardArmTest extends OpMode {
 
     @Override
     public void init() {
-        arm = new FeedforwardArm(hardwareMap, "arm", 1, 1, 537.7, 0);
+
+        //all values are arbitrary
+        arm = new FeedforwardArm(hardwareMap, "arm", 13.4, 1, 1, 537.7, 0);
+
+        //arm data given
         arm.changeVoltageData(VOLTAGE_DATA, KF_DATA);
+
+        //2 positions and their thresholds are given
         arm.addThreshold(TARGET_POSITION1, TARGET_POSITION1_THRESHOLD);
         arm.addThreshold(TARGET_POSITION2, TARGET_POSITION2_THRESHOLD);
     }

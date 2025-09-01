@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -15,9 +16,10 @@ import java.util.concurrent.Future;
 @Autonomous (name = "TargetPositionHolder")
 public class TargetPositionHolder {
 
-    private volatile boolean isMotorHolding = false;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ExecutorService executor = Executors.newCachedThreadPool();
     private double power;
+    private volatile long waitTime = 5;
+    public void changeWaitTimeBetweenRuns(long waitTime) { this.waitTime = waitTime; }
 
     //this never changes even if your motor has a different encoder resolution (this is what the code has been created with)
     public static double TRAINED_TICKS_PER_REV = 537.7;
@@ -36,7 +38,8 @@ public class TargetPositionHolder {
     public volatile double powerMultiplier = 1;
     public volatile double tuningPowerMultiplier = 1; // made on top of power multiplier adjustments
 
-    private volatile Map<DcMotor, Future<?>> motorTasks = new HashMap<>(); //holds all motor tasks
+    private volatile Map<DcMotor, Boolean> motorLoopFlags = new ConcurrentHashMap<>(); //holds are motor flags
+    private volatile Map<DcMotor, Future<?>> motorTasks = new ConcurrentHashMap<>(); //holds all motor tasks
 
     public void holdDcMotor(@NonNull DcMotor motor, double holdPosition, @NonNull VoltageSensor batteryVoltageSensor, Object... varargs) {
 
@@ -67,14 +70,14 @@ public class TargetPositionHolder {
         double LOW_BATTERY_VOLTAGE_LOW_AND_MIN_POWER = (LOW_BATTERY_VOLTAGE_LOW_AND_MIN_POW * tuningPowerMultiplier) > 1 ? 1 : (LOW_BATTERY_VOLTAGE_LOW_AND_MIN_POW * tuningPowerMultiplier);
 
 
-        isMotorHolding = true;
+        motorLoopFlags.put(motor, true);
 
         Future<?> motorTask = executor.submit(() -> {
 
             motor.setTargetPosition((int) holdPosition);
 
             try {
-                while (isMotorHolding) {
+                while (Boolean.TRUE.equals(motorLoopFlags.getOrDefault(motor, false)) && !Thread.currentThread().isInterrupted()) {
 
                     //motor power is set through fuzzy logic (tuned)
 
@@ -86,15 +89,15 @@ public class TargetPositionHolder {
                         motor.setPower(power);
                         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     }
+
+                    Thread.sleep(waitTime);
                 }
             } catch (Exception e) {
                 Thread.currentThread().interrupt();
             } finally { clearFutureOfDcMotor(motor); }
 
         });
-        if (!motorTasks.containsKey(motor)) {
-            motorTasks.put(motor, motorTask); //motor task is added to MotorTasks
-        }
+        motorTasks.putIfAbsent(motor, motorTask); //motor task is added to motorTasks
 
     }
 
@@ -142,7 +145,10 @@ public class TargetPositionHolder {
 
     /// ends the task of a motor
     public void clearFutureOfDcMotor(DcMotor motor) {
-        if (motorTasks.containsKey(motor)) motorTasks.remove(motor);
+        if (motorTasks.containsKey(motor)) {
+            motorLoopFlags.remove(motor);
+            motorTasks.remove(motor);
+        }
     }
 
     public void killExecutor() { //closes the TargetPositionHolder object
@@ -153,10 +159,10 @@ public class TargetPositionHolder {
 
     public void stopHoldingDcMotor(DcMotor motor) {
         Future<?> motorTask = motorTasks.get(motor);
+        motorLoopFlags.put(motor, false);
         if (motorTask != null) {
             motorTask.cancel(true);
         }
-        isMotorHolding = false;
         motor.setPower(0.0);
     }
 

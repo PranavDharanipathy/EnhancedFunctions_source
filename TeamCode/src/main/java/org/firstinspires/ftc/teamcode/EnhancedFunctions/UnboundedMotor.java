@@ -138,7 +138,7 @@ public class UnboundedMotor {
     }
 
     /// runs background actions concurrently
-    public void start(ScheduleType rate/** all actions done in constructor renders calling methods redundant **/ ) {
+    public void start(ScheduleType rate/* all actions done in constructor renders calling methods redundant */ ) {
         if (!isStarted) {
             if (SCHEDULE_TYPE.equals("FIXED_DELAY")) executor.scheduleWithFixedDelay(this::update,0, SCHEDULE_RATE, TimeUnit.MILLISECONDS);
             else if (SCHEDULE_TYPE.equals("FIXED_RATE")) executor.scheduleAtFixedRate(this::update, 0, SCHEDULE_RATE, TimeUnit.MILLISECONDS);

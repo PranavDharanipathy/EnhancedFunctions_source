@@ -16,9 +16,10 @@ public class FeedforwardArm {
 
     private VoltageSensor batteryVoltageSensor;
 
-    public FeedforwardArm(HardwareMap hardwareMap, String deviceName, double kf, int tolerance, double TICKS_PER_REV, double startPositionInTicks) {
+    public FeedforwardArm(HardwareMap hardwareMap, String deviceName, double kf, double kvoltage, int tolerance, double TICKS_PER_REV, double startPositionInTicks) {
 
         this.kf = kf;
+        this.kvoltage = kvoltage;
 
         this.TICKS_PER_REV = TICKS_PER_REV;
         startPosition = startPositionInTicks;
@@ -35,10 +36,11 @@ public class FeedforwardArm {
     private Integer toInteger(int integer) { return integer; }
 
     private double kf;
+    private double kvoltage;
     private final double TICKS_PER_REV;
     private double startPosition;
 
-    //defaults set
+    //defaults set (these are set for every arm)
     private double[] VOLTAGE_DATA = {13, 13};
     private double[] KF_DATA = {13, 13};
 
@@ -109,7 +111,7 @@ public class FeedforwardArm {
         }
         else {
             if (TUNING) k = kf * Math.cos(adjustedAngle);
-            else k = (getVoltageQuadraticOutput(batteryVoltageSensor.getVoltage()) / batteryVoltageSensor.getVoltage()) * kf * Math.cos(adjustedAngle);
+            else k = (kvoltage / getVoltageQuadraticOutput(batteryVoltageSensor.getVoltage())) * kf * Math.cos(adjustedAngle);
 
             if (!DISABLE) motor.setPower(k);
         }
@@ -156,7 +158,7 @@ public class FeedforwardArm {
      * y represents kf
      * On solution:
      * x represents voltage
-     * y represents power multiplier
+     * y represents power multiplier coefficient
     **/
     private double getVoltageQuadraticOutput(double voltage) {
 

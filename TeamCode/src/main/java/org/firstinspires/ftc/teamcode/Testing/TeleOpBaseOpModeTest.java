@@ -28,7 +28,7 @@ public class TeleOpBaseOpModeTest extends TeleOpBaseOpMode {
         if (isStopRequested()) return;
         waitForStart();
 
-        while (opModeIsActive()) {}
+        while (opModeIsActive());
 
     }
 }
