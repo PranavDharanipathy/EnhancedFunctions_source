@@ -20,7 +20,10 @@ public class TeleOpBaseOpModeTest extends TeleOpBaseOpMode {
     public void runOpMode() throws InterruptedException {
 
         //used to initialize without inputting a HardwareDevice
-        motorEx = generalMap.get("motor");
+        motorEx = generalMap.get("motorEx");
+        motor = generalMap.get("motor");
+        servo = generalMap.get("servo");
+        crservo = generalMap.get("crservo");
 
         if (isStopRequested()) return;
         waitForStart();

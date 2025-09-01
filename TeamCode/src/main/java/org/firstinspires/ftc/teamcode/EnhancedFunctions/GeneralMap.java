@@ -12,7 +12,7 @@ public class GeneralMap {
         this.hardwareMap = hardwareMap;
     }
 
-    /// Errors will only be reveiled at runtime through ClassCastException
+    /// Errors will only be revealed at runtime through ClassCastException
     /// @apiNote This method is NOT type-safe
     public <Device extends HardwareDevice> Device get(String deviceName) {
         return (Device) hardwareMap.get(HardwareDevice.class, deviceName);
