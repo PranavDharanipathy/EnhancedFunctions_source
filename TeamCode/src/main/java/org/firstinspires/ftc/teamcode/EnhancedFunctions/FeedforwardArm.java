@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public class FeedforwardArm {
 
     /// MUST HAVE MOTOR-ENCODER (WIRE) ATTACHED!
@@ -31,6 +32,8 @@ public class FeedforwardArm {
         motor.setTargetPosition((int) startPosition);
     }
 
+    private Integer toInteger(int integer) { return integer; }
+
     private double kf;
     private final double TICKS_PER_REV;
     private double startPosition;
@@ -43,7 +46,7 @@ public class FeedforwardArm {
 
     /**
      * Thresholds are stored for each target position
-     * @param targetPosition
+     * @param targetPosition - the target position in ticks that you ant the arm to go to.
      **/
     public void addThreshold(int targetPosition, int threshold) {
         thresholds.putIfAbsent(targetPosition, threshold);

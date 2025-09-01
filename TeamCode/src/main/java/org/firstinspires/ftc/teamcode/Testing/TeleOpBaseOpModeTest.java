@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Testing;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -13,13 +14,13 @@ public class TeleOpBaseOpModeTest extends TeleOpBaseOpMode {
     private DcMotorEx motorEx;
     private DcMotor motor;
     private Servo servo;
+    private CRServo crservo;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        motorEx = (DcMotorEx) generalMap.get(motorEx,"motorEx");
-        motor = motorMap.get("motor");
-        servo = servoMap.get("servo");
+        //used to initialize without inputting a HardwareDevice
+        motorEx = generalMap.get("motor");
 
         if (isStopRequested()) return;
         waitForStart();
