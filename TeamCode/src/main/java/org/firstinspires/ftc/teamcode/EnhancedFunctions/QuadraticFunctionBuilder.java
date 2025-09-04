@@ -23,11 +23,11 @@ public final class QuadraticFunctionBuilder {
         * y3 = ax3^2 + bx3 + c
         */
 
-        double a_x1 = StrictMath.pow(X_DATA[0], 2);
+        double a_x1 = Math.pow(X_DATA[0], 2);
         double b_x1 = X_DATA[0];
-        double a_x2 = StrictMath.pow(X_DATA[1], 2);
+        double a_x2 = Math.pow(X_DATA[1], 2);
         double b_x2 = X_DATA[1];
-        double a_x3 = StrictMath.pow(X_DATA[2], 2);
+        double a_x3 = Math.pow(X_DATA[2], 2);
         double b_x3 = X_DATA[2];
 
         double y1 = Y_DATA[0];

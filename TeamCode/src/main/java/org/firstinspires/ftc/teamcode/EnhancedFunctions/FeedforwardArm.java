@@ -16,15 +16,15 @@ public class FeedforwardArm {
 
     private VoltageSensor batteryVoltageSensor;
 
-    public FeedforwardArm(HardwareMap hardwareMap, String deviceName, double kf, double kvoltage, int tolerance, double TICKS_PER_REV, double startPositionInTicks) {
+    public FeedforwardArm(HardwareMap hardwareMap, String deviceName, VoltageSensor batteryVoltageSensor, double kf, double VOLTAGE_CONSTANT, int tolerance, double TICKS_PER_REV, double startPositionInTicks) {
 
         this.kf = kf;
-        this.kvoltage = kvoltage;
+        this.VOLTAGE_CONSTANT = VOLTAGE_CONSTANT;
 
         this.TICKS_PER_REV = TICKS_PER_REV;
         startPosition = startPositionInTicks;
 
-        batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
+        this.batteryVoltageSensor = batteryVoltageSensor;
 
         this.motor = hardwareMap.get(DcMotorEx.class, deviceName);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -36,7 +36,7 @@ public class FeedforwardArm {
     private Integer toInteger(int integer) { return integer; }
 
     private double kf;
-    private double kvoltage;
+    private final double VOLTAGE_CONSTANT;
     private final double TICKS_PER_REV;
     private double startPosition;
 
@@ -110,8 +110,8 @@ public class FeedforwardArm {
             motor.setPower(power);
         }
         else {
-            if (TUNING) k = kf * Math.cos(adjustedAngle);
-            else k = (kvoltage / getVoltageQuadraticOutput(batteryVoltageSensor.getVoltage())) * kf * Math.cos(adjustedAngle);
+            if (TUNING) k = kf * Math.cos(Math.toRadians(adjustedAngle));
+            else k = (getVoltageQuadraticOutput(batteryVoltageSensor.getVoltage()) / VOLTAGE_CONSTANT) * kf * Math.cos(adjustedAngle);
 
             if (!DISABLE) motor.setPower(k);
         }
@@ -164,7 +164,7 @@ public class FeedforwardArm {
 
         double[] quadInfo = QuadraticFunctionBuilder.getQuadraticInformationFromData(VOLTAGE_DATA, KF_DATA);
 
-        return quadInfo[0] * StrictMath.pow(voltage,2) + quadInfo[1] * voltage + quadInfo[2];
+        return quadInfo[0] * Math.pow(voltage,2) + quadInfo[1] * voltage + quadInfo[2];
     }
 
 }

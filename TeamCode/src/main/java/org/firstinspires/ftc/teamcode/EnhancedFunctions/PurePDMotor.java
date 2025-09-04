@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class PDMotor {
+public class PurePDMotor {
 
     private DcMotor motor;
 
@@ -19,7 +19,7 @@ public class PDMotor {
 
     /// @param kP - Proportional coefficient
     /// @param kD - Derivative coefficient
-    public PDMotor(HardwareMap hardwareMap, String deviceName, double kP, double kD) {
+    public PurePDMotor(HardwareMap hardwareMap, String deviceName, double kP, double kD) {
 
         motor = hardwareMap.get(DcMotor.class, deviceName);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

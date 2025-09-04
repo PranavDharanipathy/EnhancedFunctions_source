@@ -1,16 +1,18 @@
 package org.firstinspires.ftc.teamcode.Tuners;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.EnhancedFunctions.PDMotor;
+import org.firstinspires.ftc.teamcode.EnhancedFunctions.PurePDMotor;
 
+@Config
 @TeleOp(group = "tuning")
-public class PDMotorAndPDLoopManagerTuner extends OpMode {
+public class PurePDMotorTuner extends OpMode {
 
     //FOR BOTH PDMotor and PDLoopManager TUNING!!!
 
-    private PDMotor motor;
+    private PurePDMotor motor;
 
     //chose a target position
     public static int targetPositon = 300;
@@ -22,7 +24,7 @@ public class PDMotorAndPDLoopManagerTuner extends OpMode {
     @Override
     public void init() {
 
-        motor = new PDMotor(hardwareMap, "motor", 1, 0);
+        motor = new PurePDMotor(hardwareMap, "motor", 1, 0);
     }
 
     @Override

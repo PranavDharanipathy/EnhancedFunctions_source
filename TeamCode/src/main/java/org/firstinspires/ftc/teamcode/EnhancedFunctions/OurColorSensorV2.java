@@ -18,7 +18,10 @@ public class OurColorSensorV2 {
     private final float[] hsvValues = new float[3];
     private View relativeLayout;
     private float baseGain;
-    public float getBaseGain() { return colorSensor.getGain(); }
+    public double LIGHTING_COEFFICIENT = 0.9;
+    public double LIGHTING_CONSTANT = 0.5;
+    public double DISTANCE_CONSTANT = 25;
+    public float getGain() { return colorSensor.getGain(); }
 
     /// initializes the color sensor
     public void initialize(HardwareMap hardwareMap, float gain) {
@@ -35,28 +38,34 @@ public class OurColorSensorV2 {
         colorSensor.setGain(baseGain); // Set the gain
     }
 
-    /** @return hsv values
-     * @see NormalizedColorSensor
-     * @see NormalizedRGBA
-     * **/
-    public float getRawHue() {
-        NormalizedRGBA colors = colorSensor.getNormalizedColors();
-        Color.colorToHSV(colors.toColor(), hsvValues);
-
-        return hsvValues[0];
-    }
-
     private double lighting;
     private double distance;
+    private double lightingAdjustment;
+    public double getLightingAdjustment() { return lightingAdjustment; }
 
     public void collectData() {
 
         lighting = colorSensor.getLightDetected();
         distance = colorSensor.getDistance(DistanceUnit.MM);
+
+        lightingAdjustment = (LIGHTING_COEFFICIENT * lighting) / LIGHTING_CONSTANT;
+
+        double gain = distance * lightingAdjustment * (baseGain / DISTANCE_CONSTANT);
+
+        colorSensor.setGain(Double.valueOf(gain).floatValue());
     }
 
+    /**
+     * @return hsv values
+     * @see NormalizedColorSensor
+     * @see NormalizedRGBA
+     **/
     public float getNormalizedHue() {
-        return getRawHue(); //not programmed yet
+
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+        Color.colorToHSV(colors.toColor(), hsvValues);
+
+        return hsvValues[0];
     }
 
 }

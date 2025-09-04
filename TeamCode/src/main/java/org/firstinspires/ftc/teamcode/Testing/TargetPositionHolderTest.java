@@ -26,7 +26,7 @@ public class TargetPositionHolderTest extends OpMode {
         exampleMotor2 = hardwareMap.get(DcMotor.class, "motor2");
         exampleMotor2.setZeroPowerBehavior(BRAKE);
 
-        batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
+        batteryVoltageSensor = hardwareMap.voltageSensor.get("Control Hub");
     }
 
 

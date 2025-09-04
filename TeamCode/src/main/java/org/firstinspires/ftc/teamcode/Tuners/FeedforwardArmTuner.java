@@ -31,9 +31,10 @@ public class FeedforwardArmTuner extends LinearOpMode {
 
         Telemetry telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
+        batteryVoltageSensor = hardwareMap.voltageSensor.get("Control Hub");
 
-        arm = new FeedforwardArm(hardwareMap, "arm", kf, batteryVoltageSensor.getVoltage(), 1, TICKS_PER_REV, 0);
+        //VOLTAGE_CONSTANT doesn't matter in tuning mode
+        arm = new FeedforwardArm(hardwareMap, "arm", batteryVoltageSensor, kf, 0, 1, TICKS_PER_REV, 0);
         arm.tuningMode();
 
         telemetry.addLine("First put the arm at it's startPosition.");
@@ -57,7 +58,7 @@ public class FeedforwardArmTuner extends LinearOpMode {
             telemetry.addLine("Add your tuned kf value to the KF_DATA list.");
             telemetry.addLine("Add your voltage value to the VOLTAGE_DATA list.");
             telemetry.addLine("Choose the kf at the most common voltage your bot runs at and set that as your kf when initializing your arm.");
-            telemetry.addLine("Choose the corresponding battery volatage and set that as your kvoltage.");
+            telemetry.addLine("Choose the corresponding battery voltage and set that will be your VOLTAGE_CONSTANT.");
             telemetry.update();
         }
 

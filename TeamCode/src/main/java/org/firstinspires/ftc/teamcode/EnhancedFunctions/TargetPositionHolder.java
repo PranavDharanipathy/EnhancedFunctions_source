@@ -31,8 +31,9 @@ public class TargetPositionHolder {
     public static double LOW_POWER_LMARGIN = 500;
     public static double MIN_POWER_LMARGIN = 35;
 
+    //defaults, can be edited per motor even in one TargetPositionHolder object
     private volatile double TICKS_PER_REV = 537.7; //THIS is your default motors encoder resolution (motor encoder resolution can be changed for each motor)
-    public volatile double gearRatio = 1; // GEAR_RATIO input (motor) speed / output (motor) speed
+    public volatile double gearRatio = 1; // GEAR_RATIO output (motor) speed / input (motor) speed
     public volatile double holdPower = 0; // power set once motor has reached its TargetPosition
     public volatile double marginOfError = 5 ;
     public volatile double powerMultiplier = 1;
@@ -45,12 +46,12 @@ public class TargetPositionHolder {
 
         //custom stats taken
         double[] varargsData = processVarargs(varargs);
-        gearRatio = varargsData[0];
-        TICKS_PER_REV = varargsData[1];
-        holdPower = varargsData[2];
-        marginOfError = varargsData[3];
-        powerMultiplier = varargsData[4];
-        tuningPowerMultiplier = varargsData[5];
+        double gearRatio = varargsData[0];
+        double TICKS_PER_REV = varargsData[1];
+        double holdPower = varargsData[2];
+        double marginOfError = varargsData[3];
+        double powerMultiplier = varargsData[4];
+        double tuningPowerMultiplier = varargsData[5];
 
         //motor powers et leveraging ternary operators
 

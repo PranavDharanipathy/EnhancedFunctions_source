@@ -8,18 +8,17 @@ import org.firstinspires.ftc.teamcode.EnhancedFunctions.OurColorSensorV2;
 @TeleOp (group = "testing")
 public class OurColorSensorV2Test extends OpMode {
 
-    private OurColorSensorV2 ourColorSensor = new OurColorSensorV2();
+    private OurColorSensorV2 ourColorSensorV2 = new OurColorSensorV2();
 
     @Override
     public void init() {
-        ourColorSensor.initialize(hardwareMap, 3);
+        ourColorSensorV2.initialize(hardwareMap, 3);
     }
 
     @Override
     public void loop() {
 
-        telemetry.addData("Raw Color", ourColorSensor.getRawHue());
-        telemetry.addData("Normalized Color", ourColorSensor.getNormalizedHue());
+        telemetry.addData("Normalized Color", ourColorSensorV2.getNormalizedHue());
         telemetry.update();
 
     }

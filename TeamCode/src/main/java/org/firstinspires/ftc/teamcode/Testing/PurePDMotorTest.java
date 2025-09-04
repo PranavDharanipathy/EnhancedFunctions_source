@@ -3,18 +3,18 @@ package org.firstinspires.ftc.teamcode.Testing;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.EnhancedFunctions.PDMotor;
+import org.firstinspires.ftc.teamcode.EnhancedFunctions.PurePDMotor;
 
 @TeleOp(group = "testing")
-public class PDMotorTest extends OpMode {
+public class PurePDMotorTest extends OpMode {
 
-    private PDMotor motor;
+    private PurePDMotor motor;
 
     private int targetPositon;
 
     @Override
     public void init() {
-        motor = new PDMotor(hardwareMap, "motor", 1, 0);
+        motor = new PurePDMotor(hardwareMap, "motor", 1, 0);
     }
 
     @Override
