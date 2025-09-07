@@ -11,14 +11,18 @@ import org.slf4j.LoggerFactory;
 public class DataSaverTest extends OpMode {
 
     private static final Logger log = LoggerFactory.getLogger(DataSaverTest.class);
-    private DataSaver saver = new DataSaver("TEST", hardwareMap.appContext);
+    private DataSaver saver;
 
     private int saved_i;
 
     @Override
     public void init() {
 
+        saver = new DataSaver("TEST", hardwareMap.appContext);
+
         saved_i = (int) saver.loadData("test_i", 0.0f);
+
+        log.info("Saved_i updated: {}", saved_i);
     }
 
     @Override
