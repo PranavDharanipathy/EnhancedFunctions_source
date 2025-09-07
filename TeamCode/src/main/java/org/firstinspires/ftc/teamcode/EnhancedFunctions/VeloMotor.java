@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.EnhancedFunctions;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+/// motor for spinning at a constant, stable, velocity efficiently
 public class VeloMotor {
 
     private DcMotorEx motor;
