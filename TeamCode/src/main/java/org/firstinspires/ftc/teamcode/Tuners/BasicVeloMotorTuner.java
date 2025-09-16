@@ -4,13 +4,13 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.EnhancedFunctions.VeloMotor;
+import org.firstinspires.ftc.teamcode.EnhancedFunctions.BasicVeloMotor;
 
 @Config
 @TeleOp (group = "tuning")
-public class VeloMotorTuner extends OpMode {
+public class BasicVeloMotorTuner extends OpMode {
 
-    private VeloMotor motor;
+    private BasicVeloMotor motor;
 
     public static double VELOCITY = 500;
 
@@ -21,7 +21,7 @@ public class VeloMotorTuner extends OpMode {
     @Override
     public void init() {
 
-        motor = new VeloMotor(hardwareMap, "motor");
+        motor = new BasicVeloMotor(hardwareMap, "motor");
     }
 
     @Override

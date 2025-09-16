@@ -3,17 +3,17 @@ package org.firstinspires.ftc.teamcode.Testing;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.EnhancedFunctions.VeloMotor;
+import org.firstinspires.ftc.teamcode.EnhancedFunctions.BasicVeloMotor;
 
 @TeleOp (group = "testing")
-public class VeloMotorTest extends OpMode {
+public class BasicVeloMotorTest extends OpMode {
 
-    private VeloMotor motor;
+    private BasicVeloMotor motor;
 
     @Override
     public void init() {
 
-        motor = new VeloMotor(hardwareMap, "motor");
+        motor = new BasicVeloMotor(hardwareMap, "motor");
 
         motor.setVelocityPDFCoefficients(3, 1, 1); //completely arbitrary coeffs - just an example
     }
