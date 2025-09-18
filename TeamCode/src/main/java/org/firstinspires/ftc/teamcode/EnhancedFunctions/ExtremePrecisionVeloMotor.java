@@ -44,6 +44,10 @@ public final class ExtremePrecisionVeloMotor {
 
     private double kPDFUnitsPerVolt;
 
+    private double VbackEMF;
+
+    private double MOTOR_RPM;
+
     private double FN;
 
     private double SHAFT_RADIUS;
@@ -58,16 +62,24 @@ public final class ExtremePrecisionVeloMotor {
 
     private double EXTERNAL_ENCODER_RESOLUTION;
 
+    private final double PI = StrictMath.PI;
+
     /// @param EXTERNAL_ENCODER_RESOLUTION Is the encoder ticks needed by the external encoder for it to complete a full 360 degree turn,
     ///     it may be listed on the website that it was bought from.
-    /// @param massInGrams Is the amount of mass in grams that is connected to the motor.
+    /// @param MASS_IN_GRAMS Is the amount of mass in grams that is connected to the motor.
     /// @param SHAFT_DIAMETER Is the diameter of shaft connecting to motor.
-    public void setInternalParameters(double EXTERNAL_ENCODER_RESOLUTION, double massInGrams, double SHAFT_DIAMETER) {
+    /// @param MOTOR_CORE_VOLTAGE Check the website you go the motor from, it may tell you what volt motor core the motor has.
+    /// @param MOTOR_RPM Is the RPM of the motor.
+    public void setInternalParameters(double EXTERNAL_ENCODER_RESOLUTION, double MASS_IN_GRAMS, double SHAFT_DIAMETER, double MOTOR_CORE_VOLTAGE, double MOTOR_RPM) {
 
         this.EXTERNAL_ENCODER_RESOLUTION = EXTERNAL_ENCODER_RESOLUTION;
 
+        this.MOTOR_RPM = MOTOR_RPM;
+
+        VbackEMF = MOTOR_CORE_VOLTAGE;
+
         this.SHAFT_RADIUS = SHAFT_DIAMETER / 2;
-        FN = /*gravity*/ 9.80665 * (/*converted mass in g to kg*/ massInGrams * 1000);
+        FN = /*gravity*/ 9.80665 * (/*converted mass in g to kg*/ MASS_IN_GRAMS * 1000);
     }
 
     /// @param kp Proportional
@@ -112,7 +124,7 @@ public final class ExtremePrecisionVeloMotor {
 
         double p;
         double d;
-        double f;
+        double f; //constant feedforward - can be enabled or disabled
         double v;
         double a;
         double s;
@@ -148,13 +160,13 @@ public final class ExtremePrecisionVeloMotor {
         a = ka * targetAcceleration;
 
         //static friction
-        double I = internalMotor.getCurrent(CurrentUnit.AMPS);
-        double kt = (FN * SHAFT_RADIUS) / I;
+        double freeSpeed = (MOTOR_RPM * PI) / 30; // in rad/s
+        double ke = VbackEMF / freeSpeed; // using ke instead of kt - #1 ks will compensate, #2 ke can more easily be calculate accurately
         double T = ks * FN * SHAFT_RADIUS;
-        s = (T / kt) * kPDFUnitsPerVolt;
+        s = (T / ke) * kPDFUnitsPerVolt;
 
         double PDFVAPower = p + d + (usingHoldingFeedforward ? f : 0) + v + a;
-        internalMotor.setPower(PDFVAPower + (PDFVAPower >= 0 ? s : -s));
+        internalMotor.setPower(PDFVAPower + (s * Math.signum(PDFVAPower)));
 
         prevError = error;
         prevTime = currTime;
