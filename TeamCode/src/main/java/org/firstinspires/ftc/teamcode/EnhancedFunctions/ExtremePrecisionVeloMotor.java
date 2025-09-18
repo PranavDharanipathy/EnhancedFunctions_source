@@ -3,9 +3,6 @@ package org.firstinspires.ftc.teamcode.EnhancedFunctions;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 /// USES EXTERNAL ENCODER - REV Through Bore Encoder is highly recommended.
 /// <p>|<p>
@@ -18,9 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 /// <p>S: Static Friction
 public final class ExtremePrecisionVeloMotor {
 
-    public DcMotorEx internalMotor;
-
-    private ElapsedTime timer = new ElapsedTime();
+    private DcMotorEx internalMotor;
 
     public ExtremePrecisionVeloMotor(HardwareMap hardwareMap, String deviceName) {
 
@@ -44,6 +39,10 @@ public final class ExtremePrecisionVeloMotor {
 
     private double kPDFUnitsPerVolt;
 
+    private double VbackEMF;
+
+    private double MOTOR_RPM;
+
     private double FN;
 
     private double SHAFT_RADIUS;
@@ -56,18 +55,29 @@ public final class ExtremePrecisionVeloMotor {
 
     private double targetAcceleration;
 
+    private long currentPosition = 0;
+    private long lastPosition;
+
     private double EXTERNAL_ENCODER_RESOLUTION;
+
+    private final double PI = StrictMath.PI;
 
     /// @param EXTERNAL_ENCODER_RESOLUTION Is the encoder ticks needed by the external encoder for it to complete a full 360 degree turn,
     ///     it may be listed on the website that it was bought from.
-    /// @param massInGrams Is the amount of mass in grams that is connected to the motor.
+    /// @param MASS_IN_GRAMS Is the amount of mass in grams that is connected to the motor.
     /// @param SHAFT_DIAMETER Is the diameter of shaft connecting to motor.
-    public void setInternalParameters(double EXTERNAL_ENCODER_RESOLUTION, double massInGrams, double SHAFT_DIAMETER) {
+    /// @param MOTOR_CORE_VOLTAGE Check the website you go the motor from, it may tell you what volt motor core the motor has.
+    /// @param MOTOR_RPM Is the RPM of the motor.
+    public void setInternalParameters(double EXTERNAL_ENCODER_RESOLUTION, double MASS_IN_GRAMS, double SHAFT_DIAMETER, double MOTOR_CORE_VOLTAGE, double MOTOR_RPM) {
 
         this.EXTERNAL_ENCODER_RESOLUTION = EXTERNAL_ENCODER_RESOLUTION;
 
+        this.MOTOR_RPM = MOTOR_RPM;
+
+        VbackEMF = MOTOR_CORE_VOLTAGE;
+
         this.SHAFT_RADIUS = SHAFT_DIAMETER / 2;
-        FN = /*gravity*/ 9.80665 * (/*converted mass in g to kg*/ massInGrams * 1000);
+        FN = /*gravity*/ 9.80665 * (/*converted mass in g to kg*/ MASS_IN_GRAMS * 1000);
     }
 
     /// @param kp Proportional
@@ -99,37 +109,49 @@ public final class ExtremePrecisionVeloMotor {
     private double prevTime = 0, prevError = 0;
 
     /// @param velocity in ticks per second
-    public void setVelocity(double velocity) {
+    public void setVelocity(Double velocity) {
         lastTargetVelocity = targetVelocity;
         targetVelocity = velocity;
     }
 
-    public enum METHOD_OF_VELOCITY_CALCULATION {
-        FRONTEND, INTERNAL
-    }
+    private double startTime;
+    private boolean isSettingStartTime = true;
 
-    public void update(METHOD_OF_VELOCITY_CALCULATION methodOfVelocityCalculation) {
+    public void update() {
+
+        //setting start time
+        if (isSettingStartTime) {
+
+            startTime = System.nanoTime();
+
+            lastPosition = currentPosition;
+            currentPosition = internalMotor.getCurrentPosition();
+
+            isSettingStartTime = false;
+        }
 
         double p;
         double d;
-        double f;
+        double f; //constant feedforward - can be enabled or disabled
         double v;
         double a;
         double s;
 
-        double currTime = timer.milliseconds();
-        double dt = currTime - prevTime;
+        double elapsedTime = System.nanoTime() - startTime;
+        double dt = elapsedTime - prevTime;
 
         double error;
 
-        //frontend is better for this - isAtVelocityAndStable()
         lastCurrentVelocity = currentVelocity;
 
-        //setting current velocity in ticks per second (dt is in milliseconds so 'currentVelocity' is converted)
-        currentVelocity = 1000 * (internalMotor.getCurrentPosition() / dt);
+        lastPosition = currentPosition;
+        currentPosition = internalMotor.getCurrentPosition();
 
-        if (methodOfVelocityCalculation == METHOD_OF_VELOCITY_CALCULATION.FRONTEND) error = targetVelocity - currentVelocity;
-        else error = targetVelocity - internalMotor.getVelocity();
+        //setting current velocity in ticks per second (converting from nanosecond)
+        long deltaTicks = currentPosition - lastPosition;
+        currentVelocity = 1_000_000_000.0 * (deltaTicks / dt);
+
+        error = targetVelocity - currentVelocity;
 
         //proportional
         p = kp * error;
@@ -138,40 +160,56 @@ public final class ExtremePrecisionVeloMotor {
         d = kd * (error - prevError) / dt;
 
         //positional feedforward for holding
-        f = kf /* cos(0 degrees) = 1 */;
+        f = kf /* *cos(0 degrees) = 1 */;
 
         //velocity feedforward
         v = kv * targetVelocity;
 
-        //acceleration feedforward
-        targetAcceleration = (targetVelocity - lastTargetVelocity) / dt;
+        //acceleration feedforward - in ticks per millisecond
+        targetAcceleration = 1_000_000.0 * (targetVelocity - lastTargetVelocity) / dt;
         a = ka * targetAcceleration;
 
         //static friction
-        double I = internalMotor.getCurrent(CurrentUnit.AMPS);
-        double kt = (FN * SHAFT_RADIUS) / I;
+        double freeSpeed = (MOTOR_RPM * PI) / 30; // in rad/s
+        double ke = VbackEMF / freeSpeed; // using ke instead of kt - #1 ks will compensate, #2 ke can more easily be calculate accurately
         double T = ks * FN * SHAFT_RADIUS;
-        s = (T / kt) * kPDFUnitsPerVolt;
+        s = (T / ke) * kPDFUnitsPerVolt;
 
         double PDFVAPower = p + d + (usingHoldingFeedforward ? f : 0) + v + a;
-        internalMotor.setPower(PDFVAPower + (PDFVAPower >= 0 ? s : -s));
+        if (isMotorEnabled) internalMotor.setPower(PDFVAPower + (s * Math.signum(PDFVAPower)));
 
         prevError = error;
-        prevTime = currTime;
+        prevTime = elapsedTime;
+    }
+
+    public enum RunningMotor {
+
+        DISABLE(false), ENABLE(true);
+
+        boolean value;
+
+        RunningMotor(boolean enableOrDisable) {
+            value = enableOrDisable;
+        }
+
+        public boolean getValue() {
+            return value;
+        }
+    }
+
+    private boolean isMotorEnabled = true;
+
+    public void runMotor(RunningMotor isMotorEnabled) {
+        this.isMotorEnabled = isMotorEnabled.getValue();
     }
 
     /// IN TICKS PER SECOND
     /// <p>
     ///Calculated by external encoder using ticks
+    /// <p>
+    ///Gets past encoder overflow, if you're using a high resolution encoder like the REV Through-Bore and experiencing overflow, use this.
     public double getFrontendCalculatedVelocity() {
         return currentVelocity;
-    }
-
-    /// IN TICKS PER SECOND
-    /// <p>
-    ///Calculated by external encoder and motor internally
-    public double getInternallyCalculatedVelocity() {
-        return internalMotor.getVelocity();
     }
 
     public double getTargetAcceleration() {
@@ -185,13 +223,12 @@ public final class ExtremePrecisionVeloMotor {
     /// Is stable within a certain margin of error.
     /// @param velocityMarginOfError Acceptable variation in velocity.
     /// @param stabilityMarginOfError Acceptable variation in stability.
-    public boolean isAtVelocityAndStable(METHOD_OF_VELOCITY_CALCULATION methodOfVelocityCalculation, double velocityMarginOfError, double stabilityMarginOfError) {
+    public boolean isAtVelocityAndStable(double velocityMarginOfError, double stabilityMarginOfError) {
 
         boolean motorIsAtVelocityAndStable = false;
 
         double currentVelocity; //different for each type of calculation
-        if (methodOfVelocityCalculation == METHOD_OF_VELOCITY_CALCULATION.FRONTEND) currentVelocity = Math.abs(this.currentVelocity);
-        else currentVelocity = Math.abs(internalMotor.getVelocity());
+        currentVelocity = Math.abs(this.currentVelocity);
 
         if (Math.abs(targetVelocity) - currentVelocity <= velocityMarginOfError && currentVelocity - Math.abs(lastCurrentVelocity) < stabilityMarginOfError) motorIsAtVelocityAndStable = true;
 
@@ -204,6 +241,25 @@ public final class ExtremePrecisionVeloMotor {
     /// @param state true (using) or false (not using)
     public void setHoldingFeedforwardState(boolean state) {
         usingHoldingFeedforward = state;
+    }
+
+    public void reset() {
+
+        startTime = System.nanoTime();
+
+        prevError = 0;
+        prevTime = 0;
+
+        targetVelocity = 0;
+        currentVelocity = 0;
+
+        lastCurrentVelocity = 0;
+        lastTargetVelocity = 0;
+
+        lastPosition = 0;
+        currentPosition = 0;
+
+        internalMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
 }

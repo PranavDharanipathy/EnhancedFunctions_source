@@ -33,7 +33,7 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
     * Add back the kp, kd, and kf values
     * Tune kv
     * Tune ka
-    * After tuning these, you may or may not want to change your kf, if you're going to change it, make sure you update kPDFUnitsPerVolt and ks as well
+    * After tuning these, you may or may not want to change your kf, if you're going to change it, make sure you update kPDFUnitsPerVolt
     */
 
     @Override
@@ -42,7 +42,7 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
         motor = new ExtremePrecisionVeloMotor(hardwareMap, "motor");
         //arbitrary numbers
         motor.setVelocityPDFVASCoefficients(4,1.2,0.11,0.043, 0.029,0.0265,0.25);
-        motor.setInternalParameters(8440, 400, 8);
+        motor.setInternalParameters(8192, 400, 8,12, 312);
     }
 
     @Override
@@ -54,12 +54,11 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
     @Override
     public void loop() {
 
-        motor.update(ExtremePrecisionVeloMotor.METHOD_OF_VELOCITY_CALCULATION.INTERNAL);
+        motor.update();
 
         telemetry.addData("Frontend Calculated Velocity", motor.getFrontendCalculatedVelocity());
-        telemetry.addData("Internally Calculated Velocity", motor.getInternallyCalculatedVelocity());
         telemetry.addData("Target Acceleration", motor.getTargetAcceleration());
-        telemetry.addData("Is motor at velocity and stable?", motor.isAtVelocityAndStable(ExtremePrecisionVeloMotor.METHOD_OF_VELOCITY_CALCULATION.INTERNAL, VELOCITY_MARGIN_OF_ERROR, STABILITY_MARGIN_OF_ERROR));
+        telemetry.addData("Is motor at velocity and stable?", motor.isAtVelocityAndStable(VELOCITY_MARGIN_OF_ERROR, STABILITY_MARGIN_OF_ERROR));
         telemetry.update();
     }
 }
