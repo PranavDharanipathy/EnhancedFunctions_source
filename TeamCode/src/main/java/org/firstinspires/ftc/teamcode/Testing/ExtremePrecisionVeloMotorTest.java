@@ -40,7 +40,7 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
     public void init() {
 
         motor = new ExtremePrecisionVeloMotor(hardwareMap, "motor");
-        //arbitrary numbers
+        // arbitrary numbers
         motor.setVelocityPDFVASCoefficients(4,1.2,0.11,0.043, 0.029,0.0265,0.25);
         motor.setInternalParameters(8192, 400, 8,12, 312);
     }
