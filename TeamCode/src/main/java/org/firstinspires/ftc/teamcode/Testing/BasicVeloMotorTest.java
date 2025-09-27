@@ -15,7 +15,7 @@ public class BasicVeloMotorTest extends OpMode {
 
         motor = new BasicVeloMotor(hardwareMap, "motor");
 
-        motor.setVelocityPDFCoefficients(3, 1, 1); //completely arbitrary coeffs - just an example
+        motor.setVelocityPIDFCoefficients(20, 1, 1, 1); //completely arbitrary coeffs - just an example
     }
 
     @Override

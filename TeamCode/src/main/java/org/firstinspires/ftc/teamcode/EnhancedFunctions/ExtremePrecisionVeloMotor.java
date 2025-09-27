@@ -6,8 +6,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /// USES EXTERNAL ENCODER - REV Through Bore Encoder is highly recommended.
 /// <p>|<p>
-/// PDFVAS measured by external encoder.
+/// PIDFVAS measured by external encoder.
 /// <p>P: Proportional
+/// <p>I: Integral
 /// <p>D: Derivative
 /// <p>F: Holding Feedforward
 /// <p>V: Velocity Feedforward
@@ -31,13 +32,14 @@ public final class ExtremePrecisionVeloMotor {
     }
 
     public double kp;
+    public double ki;
     public double kd;
     public double kf;
     public double kv;
     public double ka;
     public double ks;
 
-    private double kPDFUnitsPerVolt;
+    private double kPIDFUnitsPerVolt;
 
     private double VbackEMF;
 
@@ -80,9 +82,23 @@ public final class ExtremePrecisionVeloMotor {
         FN = /*gravity*/ 9.80665 * (/*converted mass in g to kg*/ MASS_IN_GRAMS * 1000);
     }
 
+    public double p;
+    public double i;
+    public double d;
+    public double f; //constant feedforward - can be enabled or disabled
+    public double v;
+    public double a;
+    public double s;
+
+    public double[] getPIDFVAS() {
+
+        return new double[] {p, i, d, f, v, a, s};
+    }
+
     /// @param kp Proportional
     /// <p>
-    /// not using integral
+    /// @param ki Integral
+    /// <p>
     /// <p>
     /// @param kd Derivative
     /// <p>
@@ -94,22 +110,28 @@ public final class ExtremePrecisionVeloMotor {
     /// <p>
     /// @param ks Static Friction
     /// <p>
-    /// @param kPDFUnitsPerVolt delta PDF / delta volts
-    public void setVelocityPDFVASCoefficients(double kp, double kd, double kf, double kv, double ka, double ks, double kPDFUnitsPerVolt) {
+    /// @param kPIDFUnitsPerVolt delta PIDF / delta volts
+    public void setVelocityPIDFVASCoefficients(double kp, double ki, double kd, double kf, double kv, double ka, double ks, double kPIDFUnitsPerVolt) {
 
         this.kp = kp;
+        this.ki = ki;
         this.kd = kd;
         this.kf = kf;
         this.kv = kv;
         this.ka = ka;
         this.ks = ks;
-        this.kPDFUnitsPerVolt = kPDFUnitsPerVolt;
+        this.kPIDFUnitsPerVolt = kPIDFUnitsPerVolt;
     }
 
     private double prevTime = 0, prevError = 0;
 
     /// @param velocity in ticks per second
-    public void setVelocity(Double velocity) {
+    public void setVelocity(double velocity) {
+
+        if (targetVelocity != velocity) {
+            i = 0; //resetting integral when target velocity changes to prevent integral windup
+        }
+
         lastTargetVelocity = targetVelocity;
         targetVelocity = velocity;
     }
@@ -130,13 +152,6 @@ public final class ExtremePrecisionVeloMotor {
             isSettingStartTime = false;
         }
 
-        double p;
-        double d;
-        double f; //constant feedforward - can be enabled or disabled
-        double v;
-        double a;
-        double s;
-
         double elapsedTime = System.nanoTime() - startTime;
         double dt = elapsedTime - prevTime;
 
@@ -156,6 +171,9 @@ public final class ExtremePrecisionVeloMotor {
         //proportional
         p = kp * error;
 
+        //integral - reset when target velocity changes to prevent integral windup
+        i += error * dt;
+
         //derivative
         d = kd * (error - prevError) / dt;
 
@@ -173,10 +191,10 @@ public final class ExtremePrecisionVeloMotor {
         double freeSpeed = (MOTOR_RPM * PI) / 30; // in rad/s
         double ke = VbackEMF / freeSpeed; // using ke instead of kt - #1 ks will compensate, #2 ke can more easily be calculate accurately
         double T = ks * FN * SHAFT_RADIUS;
-        s = (T / ke) * kPDFUnitsPerVolt;
+        s = (T / ke) * kPIDFUnitsPerVolt;
 
-        double PDFVAPower = p + d + (usingHoldingFeedforward ? f : 0) + v + a;
-        if (isMotorEnabled) internalMotor.setPower(PDFVAPower + (s * Math.signum(PDFVAPower)));
+        double PIDFVAPower = p + i + d + (usingHoldingFeedforward ? f : 0) + v + a;
+        if (isMotorEnabled) internalMotor.setPower(PIDFVAPower + (s * Math.signum(PIDFVAPower)));
 
         prevError = error;
         prevTime = elapsedTime;
@@ -260,6 +278,8 @@ public final class ExtremePrecisionVeloMotor {
         currentPosition = 0;
 
         internalMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setVelocity(0);
+        i = 0;
     }
 
 }

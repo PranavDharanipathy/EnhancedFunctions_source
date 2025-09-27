@@ -15,6 +15,7 @@ public class BasicVeloMotorTuner extends OpMode {
     public static double VELOCITY = 500;
 
     public static double KP = 0;
+    public static double KI = 0;
     public static double KD = 0;
     public static double KF = 0;
 
@@ -27,7 +28,7 @@ public class BasicVeloMotorTuner extends OpMode {
     @Override
     public void loop() {
 
-        motor.setVelocityPDFCoefficients(KP, KD, KF); //coeffs are updated
+        motor.setVelocityPIDFCoefficients(KP, KI, KD, KF); //coeffs are updated
 
         motor.setVelocity(VELOCITY);
 

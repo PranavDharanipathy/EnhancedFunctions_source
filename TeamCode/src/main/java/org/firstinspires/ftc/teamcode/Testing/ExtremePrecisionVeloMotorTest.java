@@ -23,17 +23,19 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
     *
     * TUNING STEPS IN ORDER:
     * Weigh/measure parts to provide setInternalParameters
-    * Set all coefficients to 0 except for kPDFUnitsPerVolt, set that to 1
-    * Tune kf - try to keep it as low AS POSSIBLE, if it's even a bit too high, it can easily mess up your PDFVAS system
-    * Tune kp
-    * Tune kd
-    * Set kPDFUnitsPerVolt
-    * Set kp, kd, and kf to 0 but save their values
+    * Set all coefficients to 0 except for kPIDFUnitsPerVolt, set that to 1
     * Tune ks
-    * Add back the kp, kd, and kf values
     * Tune kv
     * Tune ka
-    * After tuning these, you may or may not want to change your kf, if you're going to change it, make sure you update kPDFUnitsPerVolt
+    * Tune kf - try to keep it as low AS POSSIBLE, if it's even a bit too high, it can easily mess up your PIDFVAS system
+    * Tune kp
+    * Tune kd
+    * Tune ki - try to keep it as low as possible
+    * Set kPIDFUnitsPerVolt (kv, ka, and ks should not interfere when getting this)
+    * Set everything except kPIDFUnitsPerVolt and ks to 0
+    * Update ks
+    * Add the other coefficients back
+    * After tuning these, you may or may not want to change your kf - update your kPIDFUnitsPerVolt
     */
 
     @Override
@@ -41,7 +43,7 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
 
         motor = new ExtremePrecisionVeloMotor(hardwareMap, "motor");
         // arbitrary numbers
-        motor.setVelocityPDFVASCoefficients(4,1.2,0.11,0.043, 0.029,0.0265,0.25);
+        motor.setVelocityPIDFVASCoefficients(30,1.2, 0.65, 0.5, 0.2, 0.029,0.0265,0.25);
         motor.setInternalParameters(8192, 400, 8,12, 312);
     }
 
