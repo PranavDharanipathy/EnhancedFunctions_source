@@ -6,6 +6,10 @@ public abstract class TeleOpBaseOpMode extends LinearOpMode {
 
     public TeleOpBaseOpMode() {}
 
-    public volatile GeneralMap generalMap = new GeneralMap(hardwareMap);
+    public volatile GeneralMap generalMap;
+
+    public void initializeDevices() {
+        generalMap = new GeneralMap(hardwareMap);
+    }
 
 }
