@@ -94,6 +94,7 @@ public final class QuadraticFunctionBuilder {
         return new double[] {a, b, c};
     }
 
+    /// I'm dumbfounded on how this works...
     private static Double toDouble(double doubleValue) {
         return doubleValue;
     }

@@ -3,61 +3,52 @@ package org.firstinspires.ftc.teamcode.EnhancedFunctions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class DataSaver_JSON {
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    private BufferedWriter dataFile;
+    private BufferedWriter dataWriter;
     private BufferedReader dataReader;
 
+    private File internallyStoredFile;
+
+    /// @param fileName - must be "whatever file name".jsonl
     public DataSaver_JSON(String fileName) {
 
+        internallyStoredFile = AppUtil.getInstance().getSettingsFile(fileName);
+
         try {
-            dataFile = new BufferedWriter(new FileWriter(fileName));
-            dataReader = new BufferedReader(new FileReader(fileName));
+            dataWriter = new BufferedWriter(new FileWriter(internallyStoredFile, true));
+            dataReader = new BufferedReader(new FileReader(internallyStoredFile));
 
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        catch (IOException ignored) {}
     }
 
-    /// Adds variable to JSON
-    public synchronized void addData(Object data, boolean nextLine) {
+    /// Adds to JSON
+    public synchronized void addData(String header, Object data) {
 
-        String nl = nextLine ? "\n" : "";
-
-        String currentData = gson.fromJson(dataReader, String.class);
-
-        try {
-            dataFile.write(currentData + gson.toJson(data) + nl);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /// Adds array to JSON
-    public synchronized void addData(Object[] data, boolean nextLine) {
-
-        String nl = nextLine ? "\n" : "";
-
-        String currentData = gson.fromJson(dataReader, String.class);
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put(header, data);
 
         try {
-            dataFile.write(currentData + gson.toJson(data) + nl);
+            dataWriter.write(gson.toJson(entry));
+            dataWriter.newLine();
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        catch (IOException ignored) {}
     }
 
     /// Reads data from JSON
@@ -74,12 +65,11 @@ public class DataSaver_JSON {
     public void close() {
 
         try {
-            dataFile.close();
+
+            dataWriter.close();
             dataReader.close();
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        catch (IOException ignored) {}
     }
 
 }
