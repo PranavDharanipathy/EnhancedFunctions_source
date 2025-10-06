@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.EnhancedFunctions;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -26,6 +27,12 @@ public class BasicVeloMotor {
 
     public void setVelocity(double angularRate) {
         motor.setVelocity(angularRate); //ticks per second
+    }
+
+    public void setBrakeable(boolean brakeable) {
+
+        if (brakeable) motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        else motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     public double getVelocity() {
