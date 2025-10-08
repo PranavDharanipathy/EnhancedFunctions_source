@@ -82,13 +82,20 @@ public final class ExtremePrecisionVeloMotor {
         FN = /*gravity*/ 9.80665 * (/*converted mass in g to kg*/ MASS_IN_GRAMS * 1000);
     }
 
-    public double p;
-    public double i;
-    public double d;
+    // p i d f v a s
+    public double p, i, d;
     public double f; //constant feedforward - can be enabled or disabled
-    public double v;
-    public double a;
+    public double v, a;
     public double s;
+
+    public Double i_max = Double.POSITIVE_INFINITY;
+    public Double i_min = Double.NEGATIVE_INFINITY;
+
+    public void setIConstraints(Double i_max, Double i_min) {
+
+        this.i_max = i_max;
+        this.i_min = i_min;
+    }
 
     public double[] getPIDFVAS() {
 
@@ -126,9 +133,9 @@ public final class ExtremePrecisionVeloMotor {
     private double prevTime = 0, prevError = 0;
 
     /// @param velocity in ticks per second
-    public void setVelocity(double velocity) {
+    public void setVelocity(double velocity, boolean allowIntegralReset) {
 
-        if (targetVelocity != velocity) {
+        if (allowIntegralReset && targetVelocity != velocity) {
             i = 0; //resetting integral when target velocity changes to prevent integral windup
         }
 
@@ -171,8 +178,11 @@ public final class ExtremePrecisionVeloMotor {
         //proportional
         p = kp * error;
 
-        //integral - reset when target velocity changes to prevent integral windup
+        //integral - is in fact reset when target velocity changes IF ALLOWED
         i += error * dt;
+        // i is prevented from getting too high or too low
+        if (Math.abs(i) > i_max) i = i_max;
+        else if (Math.abs(i) < i_min) i = i_min;
 
         //derivative
         d = kd * (error - prevError) / dt;
@@ -278,8 +288,8 @@ public final class ExtremePrecisionVeloMotor {
         currentPosition = 0;
 
         internalMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        setVelocity(0);
-        i = 0;
+        setVelocity(0, false); //allowIntegralReset is false to speed up computation
+        i = 0; //integral reset
     }
 
 }

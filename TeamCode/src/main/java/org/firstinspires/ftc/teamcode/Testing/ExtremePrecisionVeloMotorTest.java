@@ -25,8 +25,8 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
     * Weigh/measure parts to provide setInternalParameters
     * Set all coefficients to 0 except for kPIDFUnitsPerVolt, set that to 1
     * Tune ks
-    * Tune kv
-    * Tune ka
+    * Tune kv - as low as possible
+    * Tune ka - as low as possible
     * Tune kf - try to keep it as low AS POSSIBLE, if it's even a bit too high, it can easily mess up your PIDFVAS system
     * Tune kp
     * Tune kd
@@ -50,7 +50,7 @@ public class ExtremePrecisionVeloMotorTest extends OpMode {
     @Override
     public void start() {
 
-        motor.setVelocity(VELOCITY);
+        motor.setVelocity(VELOCITY, true);
     }
 
     @Override
